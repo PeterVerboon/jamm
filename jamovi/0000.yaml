@@ -1,0 +1,23 @@
+---
+title: Moderated mediation using SEM
+name: jamm
+version: 0.0.1
+jms: '1.0'
+authors:
+  - Peter Verboon & GJalt-Jorn Peters
+maintainer: Peter Verboon <Peter.Verboon@ou.nl>
+date: '2018-11-27'
+type: R
+description: |-
+  Moderated mediation using SEM (lavaan). 
+    The model has one predictor, one dependent variable and several mediators.
+    One moderator for the a-path and/or b-path is allowed. 
+    Covariates in both paths are also allowed.
+analyses:
+  - title: Moderated Mediation
+    name: modmed
+    ns: jamm
+    menuGroup: jamm
+    menuTitle: Moderated Mediation
+
+...

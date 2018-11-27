@@ -1,0 +1,13 @@
+Package: jamm
+Type: Package
+Title: Moderated mediation using SEM 
+Version: 0.0.1
+Author: Peter Verboon & GJalt-Jorn Peters
+Maintainer: Peter Verboon <Peter.Verboon@ou.nl>
+Description: Moderated mediation using SEM (lavaan). 
+    The model has one predictor, one dedpendent variable and several mediators.
+    Also one moderator for the a-path and/or b-path is allowed.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports: jmvcore (>= 0.8.5), R6, lavaan, ggplot2, gridExtra

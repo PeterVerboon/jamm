@@ -1,0 +1,207 @@
+---
+name:  modmed
+title: Moderated Mediation
+jrs:   '1.1'
+
+items:
+    - name:  text
+      title: Model fit 
+      type:  Preformatted
+      visible: (showFit)
+
+    - name: rsq
+      title: Explained variances
+      type: Table
+      description: a table containing the explained variances
+      rows: (c(meds,dep))
+
+      columns:
+        - name: varName
+          title: ''
+          content: ($key)
+          type: text
+          
+        - name: value
+          title: 'R square'
+          type: number
+          
+    - name: apaths
+      title: a paths
+      type: Table
+      description: a table containing the a paths
+      rows: (length(meds) + 2*length(xmmod)*length(meds))
+      visible: (paths)
+
+      columns:
+        - name: varName
+          title: 'effect  '
+          type: text
+        - name: est
+          title: 'estimate'
+          type: number
+        - name: se
+          title: 'se'
+          type: number
+        - name: z
+          title: 'z'
+          type: number
+        - name: p
+          title: 'p'
+          type: number
+          format: zto, pvalue
+        - name: ci.lower
+          title: 'ci.lower'
+          type: number
+        - name: ci.upper
+          title: 'ci.upper'
+          type: number
+ 
+    - name: bpaths
+      title: b paths
+      type: Table
+      description: a table containing the b paths
+      rows:  (length(meds)+(length(mymod)*length(meds))+(length(mymod)*1))   
+      visible: (paths)
+          
+      columns:
+        - name: varName
+          title: 'effect  '
+          type: text
+          
+        - name: est
+          title: 'estimate'
+          type: number
+        - name: se
+          title: 'se'
+          type: number
+        - name: z
+          title: 'z'
+          type: number
+        - name: p
+          title: 'p'
+          type: number
+          format: zto, pvalue
+        - name: ci.lower
+          title: 'ci.lower'
+          type: number
+        - name: ci.upper
+          title: 'ci.upper'
+          type: number
+          
+          
+    - name: indirectEffect
+      title: Indirect effects
+      type: Table
+      description: a table containing the indirect effects
+      rows: (c(meds,"total"))
+
+      columns:
+        - name: varName
+          title: 'Mediator'
+          content: ($key)
+          type: text
+          
+        - name: est
+          title: 'estimate'
+          type: number
+        - name: se
+          title: 'se'
+          type: number
+        - name: z
+          title: 'z'
+          type: number
+        - name: p
+          title: 'p'
+          type: number
+          format: zto, pvalue
+        - name: ci.lower
+          title: 'ci.lower'
+          type: number
+        - name: ci.upper
+          title: 'ci.upper'
+          type: number
+          
+          
+    - name: directEffect
+      title: Direct effects
+      type: Table
+      description: a table containing the Direct effects
+      rows: (pred)
+
+      columns:
+        - name: varName
+          title: ''
+          content: ($key)
+          type: text
+          
+        - name: est
+          title: 'estimate'
+          type: number
+        - name: se
+          title: 'se'
+          type: number
+        - name: z
+          title: 'z'
+          type: number
+        - name: p
+          title: 'p'
+          type: number
+          format: zto, pvalue
+        - name: ci.lower
+          title: 'ci.lower'
+          type: number
+        - name: ci.upper
+          title: 'ci.upper'
+          type: number
+          
+    - name: indirectEffectStand
+      title: Standardized indirect effects
+      type: Table
+      description: a table containing the Standardized indirect effects
+      rows: (meds)
+
+      columns:
+        - name: varName
+          title: 'Mediator'
+          content: ($key)
+          type: text
+          
+        - name: value
+          title: 'Standardized indirect effect'
+          type: number
+          
+    - name: plotIMMx
+      title: Index of moderated mediation x-m path
+      type: Image
+      visible: (plotIom)
+      width:  400
+      height: 300
+      renderFun: .plotIom
+
+    - name: plotIMMy
+      title: Index of moderated mediation m-y path
+      type: Image
+      visible: (plotIom)
+      width:  400
+      height: 300
+      renderFun: .plotIom
+      
+    - name: plotSSx
+      title: Simple slopes for moderator x-m path
+      type: Image
+      visible: (plotSS)
+      width:  400
+      height: 300
+      renderFun: .plotSS
+
+    - name: plotSSy
+      title: Simple slopes for moderator m-y path
+      type: Image
+      visible: (plotSS)
+      width:  400
+      height: 300
+      renderFun: .plotSS
+
+
+
+...

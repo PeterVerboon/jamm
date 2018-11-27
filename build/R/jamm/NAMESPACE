@@ -1,0 +1,5 @@
+exportPattern("^[[:alpha:]]+")
+import(ggplot2)
+export(modmed)
+export(modmedClass)
+export(modmedOptions)
