@@ -91,8 +91,8 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             if (noIomPlot == FALSE){
               
                parEst <- results$intermediate$parameterEstimates
-               plotData <- private$.preparePlotIom(data=data, mod = xmmod, mvars = mvars, 
-                                                parEst = parEst, vorw = "w",int = "im")
+               plotData <- private$.preparePlotIom(data=data, yvar=yvar,mod = xmmod, mvars = mvars, 
+                                                parEst = parEst, path = "x-m")
              
               image <- self$results$plotIMMx     # empty plot defined in r.yaml
               image$setState(plotData)           # construct plot
@@ -105,7 +105,7 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
               
               parEst <- results$intermediate$parameterEstimates
               plotDat2 <- private$.prepareSimpleSlopes(data=data,xvar=xvar,yvar=yvar,mod=xmmod, mvars=mvars, 
-                                             parEst=parEst, vorw="w", int = "im", vdichotomous = xdichotomous,
+                                             parEst=parEst, vdichotomous = xdichotomous,
                                              modLevels=xmodLevels, path ="x-m") 
               image <- self$results$plotSSx     # empty plot defined in r.yaml
               image$setState(plotDat2)          # construct plot
@@ -139,8 +139,8 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             if (noIomPlot == FALSE){
               
               parEst <- results$intermediate$parameterEstimates
-              plotData <- private$.preparePlotIom(data=data, mod = mymod, mvars = mvars, 
-                                              parEst = parEst, vorw = "v",int = "iy")
+              plotData <- private$.preparePlotIom(data=data,yvar=yvar, mod = mymod, mvars = mvars, 
+                                              parEst = parEst, path = "m-y")
               image <- self$results$plotIMMy     # empty plot defined in r.yaml
               image$setState(plotData)           # construct plot
               
@@ -152,7 +152,7 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
               
               parEst <- results$intermediate$parameterEstimates
               plotDat2 <- private$.prepareSimpleSlopes(data=data,xvar=xvar,yvar=yvar,mod=mymod, mvars=mvars, 
-                                                       parEst=parEst, vorw="v", int = "iy", vdichotomous = xdichotomous,
+                                                       parEst=parEst, vdichotomous = xdichotomous,
                                                        modLevels=xmodLevels, path ="m-y") 
               image <- self$results$plotSSy      # empty plot defined in r.yaml
               image$setState(plotDat2)           # construct plot
@@ -290,35 +290,56 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
     },
       
-       .preparePlotIom = function(data=data, mod , mvars = mvars,
-                                 parEst, vorw , int )  {
+       .preparePlotIom = function(data=data,yvar, mod , mvars = mvars,
+                                 parEst, path = "x-m" )  {
 
-        
+         yquant <- quantile(data[,yvar], c(.40,.60), na.rm = TRUE)
+         
+         
         # compute parameters for index of mediation
 
-        a   <- subset(parEst, grepl("a1", parEst$label))[,"est"]
-        b   <- subset(parEst, grepl("b", parEst$label))[,"est"]
-        vw  <- subset(parEst, grepl(vorw, parEst$label))[,"est"]
-        int <- subset(parEst, grepl(int, parEst$label))[,c("ci.lower","est","ci.upper")]
-
+         if (path == "x-m") {
+           vorw <- "w"
+           inter <- "im"
+           modmed <- "modmedx"
+         } else {
+           vorw <- "v"
+           inter <- "iy"
+           modmed <- "modmedm"
+         }
+         
+         a <- subset(parEst, grepl("a1", parEst$label))[,"est"]
+         b <- subset(parEst, grepl("b", parEst$label))[,"est"]
+         ind <- subset(parEst, grepl("ind", parEst$label))[,c("ci.lower","est","ci.upper")]
+         
+         vw <- subset(parEst, grepl(vorw, parEst$label))[,"est"]
+         int <- subset(parEst, grepl(inter, parEst$label))[,c("ci.lower","est","ci.upper")]
+         mm <- subset(parEst, grepl(modmed, parEst$label))[,c("ci.lower","est","ci.upper")]
+         
+         
         if (vorw == "v") vw <- rep(vw,length(mvars))
         
-        plotData <- data.frame(yIom=numeric(), moderator = numeric(), mediator = factor())
-        IMMplots <- list()
-        moderator <- c(min(data[,mod]),max(data[,mod])) 
-
+        # initialize data for index mediated moderation
+        
+        plotData <- data.frame(X1 = numeric(),X2 = numeric(),X3 = numeric(), 
+                               moderator = numeric(), 
+                               mediator = factor())
+        moderator <- data[,mod]
+        
+        
         for (i in seq_along(mvars)) {
 
-          yIom <- a[i]*b[i] + vw[i]*int[i,2]*moderator
-          mediator <- c(mvars[i],mvars[i])
-          
+          yIom <- a[i]*b[i] + data[,mod] %o% as.numeric(mm[i,])
+          mediator <- rep(mvars[i],nrow(data))
           plotDat0 <- data.frame(yIom,moderator,mediator);
           plotData <- rbind(plotData,plotDat0)
          
         } #   end loop mvars
         
-        names(plotData) <- c('IMM', mod, "mediator")
-        attr(plotData, 'ylim') <- c(-1, 1);
+        names(plotData) <- c("IMM_lwr",'IMM',"IMM_upr", mod, "mediator")
+        ymin <- min(plotData$IMM,plotData$IMM_lwr,plotData$IMM_upr, yquant, na.rm = TRUE)
+        ymax <- max(plotData$IMM,plotData$IMM_lwr,plotData$IMM_upr, yquant, na.rm = TRUE)
+        attr(plotData, 'ylim') <- c(ymin, ymax)
         
         return(plotData)
         
@@ -330,14 +351,20 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         if (self$options$plotIom == FALSE) return(FALSE)
         if (is.null(image$state) || is.na(image$state)) return(FALSE)
         plotData <- image$state
-        imm <- names(plotData)[1]
-        mod <- names(plotData)[2]
-        med <- names(plotData)[3]
+        IMM_lwr <- names(plotData)[1]
+        IMM_upr <- names(plotData)[3]
+        IMM <- names(plotData)[2]
+        mod <- names(plotData)[4]
+        med <- names(plotData)[5]
          plot <- ggplot(image$state, 
-                        aes_string(x = mod, y = imm, colour = med)) +
-          geom_point() + geom_line() +
-          coord_cartesian(ylim=c(-1.0, 1.0)) +
-          scale_y_continuous(breaks=seq(-1, 1, 0.2)) 
+                        aes_string(x = mod, y = IMM, colour = med)) +
+          geom_line() +
+          coord_cartesian(ylim=attr(plotData,"ylim")) #+
+          #scale_y_continuous(breaks=seq(-1, 1, 0.2)) 
+         
+         plot <- plot + 
+           geom_ribbon(aes(ymin=IMM_lwr, ymax=IMM_upr), alpha=.3, linetype=0) 
+         
 
         print(plot)
         TRUE
@@ -346,94 +373,80 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   
     
     .prepareSimpleSlopes = function(data,xvar,yvar,mod, mvars, 
-                                    parEst, vorw, int, vdichotomous,
+                                    parEst, vdichotomous,
                                     modLevels, path = NULL) {
       
-      xmin <- min(data[,xvar], na.rm = TRUE)
-      xmax <- max(data[,xvar], na.rm = TRUE)
-      miny <- min(data[,yvar], na.rm = TRUE)
-      maxy <- max(data[,yvar], na.rm = TRUE)
+      xquant <- quantile(data[,xvar], c(.16,.84), na.rm = TRUE)
+      yquant <- quantile(data[,yvar], c(.16,.84), na.rm = TRUE)
+      
       
       # compute simple slopes
       
       if (vdichotomous) {
-        modmin <- 0;
-        modmax <- 1
+        modquant <- c(0,1)
       } else {
-        modmin <- mean(data[,mod]) - stats::sd(data[,mod]);
-        modmax <- mean(data[,mod]) + stats::sd(data[,mod]);
-        modmin <- round(modmin,1)
-        modmax <- round(modmax,1)
+        modquant <- quantile(data[,mod], c(.16,.84), na.rm = TRUE)
+      }
+      
+      if (path == "x-m") {
+        vorw <- "w"
+        inter <- "im"
+        modmed <- "modmedx"
+      } else {
+        vorw <- "v"
+        inter <- "iy"
+        modmed <- "modmedm"
       }
       
       a <- subset(parEst, grepl("a1", parEst$label))[,"est"]
       b <- subset(parEst, grepl("b", parEst$label))[,"est"]
+      ind <- subset(parEst, grepl("ind", parEst$label))[,c("ci.lower","est","ci.upper")]
+      
       vw <- subset(parEst, grepl(vorw, parEst$label))[,"est"]
-      int <- subset(parEst, grepl(int, parEst$label))[,c("ci.lower","est","ci.upper")]
+      int <- subset(parEst, grepl(inter, parEst$label))[,c("ci.lower","est","ci.upper")]
+      mm <- subset(parEst, grepl(modmed, parEst$label))[,c("ci.lower","est","ci.upper")]
       
       if (vorw == "v") vw <- rep(vw,length(mvars))
       
       if (vdichotomous) {
         legendLabel <- modLevels
-        maxLab <- max(stringr::str_length(modLevels[1]),stringr::str_length(modLevels[2]))
-        minLabel <- stringr::str_pad(modLevels[1],maxLab, pad = " ")
-        maxLabel <- stringr::str_pad(modLevels[2],maxLab, pad = " ")
       }
       else {
-        legendLabel <- c("1 SD below mean", "1 SD above mean")
-        minLabel <- c("for 1 sd below mean of moderator: ")  # for table
-        maxLabel <- c("for 1 sd above mean of moderator: ")  # for table
-        data$moderator <- data[,mod]
+        legendLabel <- c("16th percentile", "84th percentile")
       }
       
       title <- paste0("Simple slopes in ", path , " path for indirect effect ")
       
       plotDat2 <- data.frame(yv=numeric(), xv=numeric(), mov=numeric(),mev=factor())
-      xv <- c(xmin,xmax,xmin,xmax)
-      mov <- c(modmin, modmin, modmax, modmax)
+      xv <-  c(xquant[1],xquant[1],xquant[2],xquant[2])
+      mov <- c(modquant,modquant)
       
       for (i in seq_along(mvars)) {
         
-        incmin <- vw*modmin
-        slopemin <- a[i]*b[i] + vw[i]*int[i,]*modmin
-        incmax  <- vw*modmax
-        slopemax <- a[i]*b[i] + vw[i]*int[i,]*modmax
-        
-        pred <- rep(0,4)
-        pred[1] <- incmin  + slopemin[2] * xmin;
-        pred[2] <- incmin + slopemin[2] * xmax;
-        pred[3] <- incmax  + slopemax[2] * xmin;
-        pred[4] <- incmax  + slopemax[2] * xmax
-        pred <- unlist(pred)
-        
-        plotDat1 <- data.frame(cbind(yv = pred, xv = xv))
+        pred1 <- b[i]*vw*modquant  + (as.numeric(modquant) %o% as.numeric(mm[i,]))*xquant[1]
+        pred2 <- b[i]*vw*modquant  + (as.numeric(modquant) %o% as.numeric(mm[i,]))*xquant[2]
+        pred <- rbind(pred1, pred2)
+        plotDat1 <- data.frame(cbind(pred, xv = xv))
         plotDat1$mov <- as.factor(round(mov,1))                      
         plotDat1$mev <- as.factor(rep(mvars[i],4))
-         
+        
         plotDat2 <- rbind(plotDat2,plotDat1)
-         
          
       }  # loop mvars
       
       
+      names(plotDat2) <- c("lwr",yvar,"upr", xvar, mod, "mediator")
+      ymin <- min(plotDat2$yvar, plotDat2$lwr,plotDat2$upr, yquant)
+      ymax <- max(plotDat2$yvar, plotDat2$lwr,plotDat2$upr, yquant)
       
-      colnames(plotDat2) <- c(yvar, xvar, mod, "mediator")
-     
       attr(plotDat2, 'legendLabel') <- legendLabel;
-      attr(plotDat2, 'ylim') <- c(miny, maxy);
+      attr(plotDat2, 'ylim') <- c(ymin, ymax);
       attr(plotDat2, 'title') <- title;
       plotDat2[,mod] <- as.factor(plotDat2[,mod])
       plotDat2[,yvar] <- as.numeric(plotDat2[,yvar])
       plotDat2[,xvar] <- round(plotDat2[,xvar],2)  
       
       
-      # if (path == "x-m") image <- self$results$plotSSx     # empty plot defined in r.yaml
-      # if (path == "m-y") image <- self$results$plotSSy     # empty plot defined in r.yaml
-      #  
-      # 
-      # 
-      # image$setState(plotDat2)        # construct plot
-      # 
       return(plotDat2)
       
     }, # end function prepareSS
@@ -441,19 +454,20 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       .plotSS = function(image, legendLabel=legendLabel, ...) {     # Function name corresponds to r.yaml definition
         if (is.null(image$state) || is.na(image$state)) return(FALSE)
-        if (ncol(image$state) != 4) return(FALSE);
         plotDat2 <- image$state
-        xvar <- names(plotDat2)[2]
-        yvar <- names(plotDat2)[1]
-        mod <-  names(plotDat2)[3]
-        med <-  names(plotDat2)[4]
+        lwr  <- names(plotDat2)[1]
+        yvar <- names(plotDat2)[2]
+        upr  <- names(plotDat2)[3]
+        xvar <- names(plotDat2)[4]
+        mod <-  names(plotDat2)[5]
+        med <-  names(plotDat2)[6]
         plot <- ggplot(plotDat2, aes_string(x=xvar,y=yvar,colour=mod)) +
           geom_point() + geom_line() +
+          geom_ribbon(aes(ymin=lwr, ymax=upr),alpha=.3, linetype=0) +
           ylim(attr(plotDat2, 'ylim')) +
           scale_colour_discrete(name  = mod, labels=attr(plotDat2, 'legendLabel')) 
         plot <- plot + facet_grid(mediator ~ .) 
         
-         
          print(plot)
          return(TRUE);
           

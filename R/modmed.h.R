@@ -356,32 +356,32 @@ modmedResults <- if (requireNamespace('jmvcore')) R6::R6Class(
                 name="plotIMMx",
                 title="Index of moderated mediation x-m path",
                 visible="(plotIom)",
-                width=400,
-                height=300,
+                width=600,
+                height=450,
                 renderFun=".plotIom"))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotIMMy",
                 title="Index of moderated mediation m-y path",
                 visible="(plotIom)",
-                width=400,
-                height=300,
+                width=600,
+                height=450,
                 renderFun=".plotIom"))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotSSx",
                 title="Simple slopes for moderator x-m path",
                 visible="(plotSS)",
-                width=400,
-                height=300,
+                width=600,
+                height=450,
                 renderFun=".plotSS"))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotSSy",
                 title="Simple slopes for moderator m-y path",
                 visible="(plotSS)",
-                width=400,
-                height=300,
+                width=600,
+                height=450,
                 renderFun=".plotSS"))}))
 
 modmedBase <- if (requireNamespace('jmvcore')) R6::R6Class(
