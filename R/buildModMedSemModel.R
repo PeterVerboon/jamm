@@ -26,13 +26,13 @@ buildModMedSemModel <- function(xvar,
   ncy <- length(cyvars);
 
   ### first index predictor in x - m path (= 1 because only one predictor)
-  a1 <- 1:length(xvar);
+  a1 <- NULL    # 1:length(xvar);
 
   ### second indices mediators for x - m paths
   a2 <- 1:nm;
 
   ### second index predictor in m - y path (= 1 because only one dependent)
-  b2 <- 1:length(yvar);
+  b2 <- NULL    # 1:length(yvar);
 
   ### first indices mediators for m - y paths
   b1 <- a2;
@@ -59,7 +59,7 @@ buildModMedSemModel <- function(xvar,
 
   ### path from moderator*m to y
   if(!is.null(mymod)) {
-    v1 <- paste0("v",1)
+    v1 <- paste0("v",b2)
     v2 <- paste0("iy",a2)
   }
 
