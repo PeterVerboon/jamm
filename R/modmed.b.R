@@ -308,7 +308,7 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
            modmed <- "modmedm"
          }
          
-         a <- subset(parEst, grepl("a1", parEst$label))[,"est"]
+         a <- subset(parEst, grepl("a", parEst$label))[,"est"]
          b <- subset(parEst, grepl("b", parEst$label))[,"est"]
          ind <- subset(parEst, grepl("ind", parEst$label))[,c("ci.lower","est","ci.upper")]
          

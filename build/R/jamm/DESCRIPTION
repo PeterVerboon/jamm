@@ -11,4 +11,4 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Imports: jmvcore (>= 0.8.5), R6, lavaan, ggplot2, gridExtra
-Built: R 3.4.1; ; 2018-12-05 09:52:58 UTC; windows
+Built: R 3.4.1; ; 2018-12-05 11:07:36 UTC; windows
