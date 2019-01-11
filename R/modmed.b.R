@@ -32,7 +32,7 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         
         suppressWarnings({
           
-           results <- moderatedMediationSem (
+      results <- gemm(
              data =  data,
              yvar  = self$options$dep,
              mvars = self$options$meds,
@@ -58,8 +58,6 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         private$.populateIndSTable(results)
 
         
-  
-        
         if (paths == TRUE) {
           private$.populateATable(results)
           private$.populateBTable(results)
@@ -69,95 +67,95 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
           ## test if moderator exists for x=m path and if it is dichotomous factor
           if (length(xmmod)) {
-            noIomPlot <- ifelse(plotIom, noIomPlot <- FALSE, noIomPlot <- TRUE)
-            noSSPlot <- ifelse(plotSS, noSSPlot <- FALSE, noSSPlot <- TRUE)
-            xdichotomous <- FALSE
+              xdichotomous <-  results$intermediate$xdichotomous
+              plotPossible <- TRUE
             if (is.factor(data[,xmmod])) {
               if (length(levels(data[,xmmod])) > 2) {
                 message <- ("This function can not yet plot moderation with a moderator (x-m path) that is a factor with more than two levels.");
-                noSSPlot <- TRUE
-                noIomPlot <- TRUE
+                plotPossible <- FALSE
               }
               else {
                 xmodLevels <- levels(data[,xmmod]);
                 data[,xmmod] <- as.numeric(data[,xmmod]) - 1;
-                xdichotomous <- TRUE;
-                noIomPlot <- TRUE
               }
             }
           
-            # index of moderated mediation
             
-            if (noIomPlot == FALSE){
+            if (plotIom & plotPossible){
               
                parEst <- results$intermediate$parameterEstimates
-               plotData <- private$.preparePlotIom(data=data, yvar=yvar,mod = xmmod, mvars = mvars, 
-                                                parEst = parEst, path = "x-m")
-             
-              image <- self$results$plotIMMx     # empty plot defined in r.yaml
-              image$setState(plotData)           # construct plot
-              
-              }  # if noIomPLot
+               plotData <- private$.preparePlotIom(data=data, xvar = xvar, yvar=yvar,
+                                                   mod = xmmod, mvars = mvars, 
+                                                   vdichotomous = xdichotomous,
+                                                   modLevels = xmodLevels,
+                                                   parEst = parEst, path = "x-m")
+                image <- self$results$plotIMMx     # empty plot defined in r.yaml
+                image$setState(plotData)           # construct plot
+                
+              }  
             
             
             
-            if (noSSPlot == FALSE){
+            if (plotSS & plotPossible ){
               
               parEst <- results$intermediate$parameterEstimates
-              plotDat2 <- private$.prepareSimpleSlopes(data=data,xvar=xvar,yvar=yvar,mod=xmmod, mvars=mvars, 
-                                             parEst=parEst, vdichotomous = xdichotomous,
-                                             modLevels=xmodLevels, path ="x-m") 
+              plotDat2 <- private$.prepareSimpleSlopes(data=data, xvar=xvar, yvar=yvar,
+                                                       mod=xmmod, mvars=mvars, 
+                                                       vdichotomous = xdichotomous,
+                                                       modLevels=xmodLevels,
+                                                       parEst=parEst, path ="x-m") 
               image <- self$results$plotSSx     # empty plot defined in r.yaml
               image$setState(plotDat2)          # construct plot
               
-
-              } # if noSSPLot
+              } 
 
          }   # length(xmmod)
           
           
           if (length(mymod)) {
-            noIomPlot <- ifelse(plotIom, noIomPlot <- FALSE, noIomPlot <- TRUE)
-            noSSPlot <- ifelse(plotSS, noSSPlot <- FALSE, noSSPlot <- TRUE)
-            xdichotomous <- FALSE
+            ydichotomous <- results$intermediate$ydichotomous
+            plotPossible <- TRUE
             if (is.factor(data[,mymod])) {
               if (length(levels(data[,mymod])) > 2) {
-                message <- ("This function can not yet plot moderation with a moderator (m-y path) that is a factor with more than two levels.");
-                noSSPlot <- TRUE
-                noIomPlot <- TRUE
+                 message <- ("This function can not yet plot moderation with a moderator (m-y path) that is a factor with more than two levels.");
+                 plotPossible <- FALSE
               }
               else {
-                xmodLevels <- levels(data[,mymod]);
+                ymodLevels <- levels(data[,mymod]);
                 data[,mymod] <- as.numeric(data[,mymod]) - 1;
-                xdichotomous <- TRUE;
-                noIomPlot <- TRUE
               }
             }
             
-            # index of moderated mediation
             
-            if (noIomPlot == FALSE){
+          if (plotIom & plotPossible){
               
               parEst <- results$intermediate$parameterEstimates
-              plotData <- private$.preparePlotIom(data=data,yvar=yvar, mod = mymod, mvars = mvars, 
-                                              parEst = parEst, path = "m-y")
+              plotData <- private$.preparePlotIom(data=data,xvar=xvar, yvar=yvar, 
+                                                  mod = mymod, mvars = mvars, 
+                                                  vdichotomous = ydichotomous,
+                                                  modLevels = ymodLevels,
+                                                  parEst = parEst, path = "m-y")
+
               image <- self$results$plotIMMy     # empty plot defined in r.yaml
               image$setState(plotData)           # construct plot
+                
               
-            }  # if noIomPLot
+            }  
             
             
             
-            if (noSSPlot == FALSE){
+          if (plotSS & plotPossible){
               
               parEst <- results$intermediate$parameterEstimates
-              plotDat2 <- private$.prepareSimpleSlopes(data=data,xvar=xvar,yvar=yvar,mod=mymod, mvars=mvars, 
-                                                       parEst=parEst, vdichotomous = xdichotomous,
-                                                       modLevels=xmodLevels, path ="m-y") 
+              plotDat2 <- private$.prepareSimpleSlopes(data=data,xvar=xvar,yvar=yvar,
+                                                       mod=mymod, mvars = mvars, 
+                                                       vdichotomous = ydichotomous,
+                                                       modLevels = ymodLevels,
+                                                       parEst=parEst, path ="m-y") 
               image <- self$results$plotSSy      # empty plot defined in r.yaml
               image$setState(plotDat2)           # construct plot
               
-            } # if noSSPLot
+            } 
             
           }   # length(mymod)
           
@@ -290,11 +288,19 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
     },
       
-       .preparePlotIom = function(data=data,yvar, mod , mvars = mvars,
-                                 parEst, path = "x-m" )  {
+       .preparePlotIom = function(data=data, xvar, yvar, mod , mvars = mvars,
+                                  vdichotomous, modLevels ,parEst, path = "x-m" )  {
 
+         xquant <- quantile(data[,xvar], c(.16,.84), na.rm = TRUE)
          yquant <- quantile(data[,yvar], c(.40,.60), na.rm = TRUE)
          
+         if (vdichotomous) {
+           modquant <- c(0,1)
+           legendLabel <- modLevels
+         } else {
+           modquant <- quantile(data[,mod], c(.16,.84), na.rm = TRUE)
+           legendLabel <- c("16th percentile", "84th percentile")
+         }
          
         # compute parameters for index of mediation
 
@@ -307,42 +313,48 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
            inter <- "iy"
            modmed <- "modmedm"
          }
-         
-         a <- subset(parEst, grepl("a", parEst$label))[,"est"]
-         b <- subset(parEst, grepl("b", parEst$label))[,"est"]
+
          ind <- subset(parEst, grepl("ind", parEst$label))[,c("ci.lower","est","ci.upper")]
-         
-         vw <- subset(parEst, grepl(vorw, parEst$label))[,"est"]
+         vw <- subset(parEst, grepl(vorw, parEst$label))[,c("ci.lower","est","ci.upper")]
          int <- subset(parEst, grepl(inter, parEst$label))[,c("ci.lower","est","ci.upper")]
          mm <- subset(parEst, grepl(modmed, parEst$label))[,c("ci.lower","est","ci.upper")]
          
+         bw <- subset(parEst, grepl("bw", parEst$label))[,c("ci.lower","est","ci.upper")]
+         gw <- subset(parEst, grepl("gw", parEst$label))[,c("ci.lower","est","ci.upper")]
          
-        if (vorw == "v") vw <- rep(vw,length(mvars))
-        
+         N <- dim(data)[1]
+         
+         if (vorw == "v") bw <- (matrix(as.numeric(vw), nrow=length(mvars), ncol = 3, byrow = TRUE ))
+         
+   
         # initialize data for index mediated moderation
         
         plotData <- data.frame(X1 = numeric(),X2 = numeric(),X3 = numeric(), 
                                moderator = numeric(), 
                                mediator = factor())
-        moderator <- data[,mod]
+        moderator <- as.numeric(data[,mod])
         
         
         for (i in seq_along(mvars)) {
 
-          yIom <- a[i]*b[i] + data[,mod] %o% as.numeric(mm[i,])
+          d1 <-  matrix(as.numeric(ind[i,]), nrow = N, ncol=3, byrow = TRUE)  
+          d2 <- (moderator %o% as.numeric(mm[i,]))
+          yIom <- d1+ d2
           mediator <- rep(mvars[i],nrow(data))
           plotDat0 <- data.frame(yIom,moderator,mediator);
           plotData <- rbind(plotData,plotDat0)
-         
+          
         } #   end loop mvars
         
         names(plotData) <- c("IMM_lwr",'IMM',"IMM_upr", mod, "mediator")
         ymin <- min(plotData$IMM,plotData$IMM_lwr,plotData$IMM_upr, yquant, na.rm = TRUE)
         ymax <- max(plotData$IMM,plotData$IMM_lwr,plotData$IMM_upr, yquant, na.rm = TRUE)
+        levels(plotData[,mod]) <- legendLabel
         attr(plotData, 'ylim') <- c(ymin, ymax)
+        attr(plotData, 'vdichotomous') <- vdichotomous
+        attr(plotData,"legendLabel") <- legendLabel
         
         return(plotData)
-        
         
       },  # end function preparePlotIom
       
@@ -356,25 +368,41 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         IMM <- names(plotData)[2]
         mod <- names(plotData)[4]
         med <- names(plotData)[5]
-         plot <- ggplot(image$state, 
-                        aes_string(x = mod, y = IMM, colour = med)) +
-          geom_line() +
-          coord_cartesian(ylim=attr(plotData,"ylim")) #+
-          #scale_y_continuous(breaks=seq(-1, 1, 0.2)) 
-         
-         plot <- plot + 
-           geom_ribbon(aes(ymin=IMM_lwr, ymax=IMM_upr), alpha=.3, linetype=0) 
-         
+        
+        vdichotomous <- attr(plotData,"vdichotomous")
+        if (vdichotomous) {
+          pd <- position_dodge(0.1)
+          plotData[,mod] <- as.factor(plotData[,mod])
+          levels(plotData[,mod]) <- attr(plotData,"legendLabel")
+          
+          plot <- ggplot(plotData, 
+                         aes_string(x = mod, y = IMM, colour = med)) +
+            geom_point(aes(colour = mediator), position = pd, size=2) +  
+            geom_errorbar(aes(ymin=IMM_lwr, ymax=IMM_upr), width=0.2, size=0.5, position = pd) +
+            coord_cartesian(ylim=attr(plotData,"ylim")) +
+            xlab(paste0("Moderator: ",mod)) 
+          
+        } else {
+          plot <- ggplot(image$state, 
+                         aes_string(x = mod, y = IMM, colour = med)) +
+            geom_line() +
+            coord_cartesian(ylim=attr(plotData,"ylim")) 
+          
+          plot <- plot + 
+            geom_ribbon(aes(ymin=IMM_lwr, ymax=IMM_upr), alpha=.3, linetype=0) 
+          
+           }
+        
 
         print(plot)
         TRUE
       },
     
-  
+
+    
     
     .prepareSimpleSlopes = function(data,xvar,yvar,mod, mvars, 
-                                    parEst, vdichotomous,
-                                    modLevels, path = NULL) {
+                                    vdichotomous,modLevels,parEst, path = NULL) {
       
       xquant <- quantile(data[,xvar], c(.16,.84), na.rm = TRUE)
       yquant <- quantile(data[,yvar], c(.16,.84), na.rm = TRUE)
@@ -384,9 +412,11 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       if (vdichotomous) {
         modquant <- c(0,1)
+        legendLabel <- modLevels
       } else {
-        modquant <- quantile(data[,mod], c(.16,.84), na.rm = TRUE)
-      }
+         modquant <- quantile(data[,mod], c(.16,.84), na.rm = TRUE)
+         legendLabel <- c("16th percentile", "84th percentile")
+        }
       
       if (path == "x-m") {
         vorw <- "w"
@@ -398,23 +428,19 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         modmed <- "modmedm"
       }
       
-      a <- subset(parEst, grepl("a1", parEst$label))[,"est"]
-      b <- subset(parEst, grepl("b", parEst$label))[,"est"]
       ind <- subset(parEst, grepl("ind", parEst$label))[,c("ci.lower","est","ci.upper")]
-      
-      vw <- subset(parEst, grepl(vorw, parEst$label))[,"est"]
+      vw <- subset(parEst, grepl(vorw, parEst$label))[,c("ci.lower","est","ci.upper")]
       int <- subset(parEst, grepl(inter, parEst$label))[,c("ci.lower","est","ci.upper")]
       mm <- subset(parEst, grepl(modmed, parEst$label))[,c("ci.lower","est","ci.upper")]
       
-      if (vorw == "v") vw <- rep(vw,length(mvars))
+      bw <- subset(parEst, grepl("bw", parEst$label))[,c("ci.lower","est","ci.upper")]
+      gw <- subset(parEst, grepl("gw", parEst$label))[,c("ci.lower","est","ci.upper")]
       
-      if (vdichotomous) {
-        legendLabel <- modLevels
-      }
-      else {
-        legendLabel <- c("16th percentile", "84th percentile")
-      }
+      N <- dim(data)[1]
       
+      if (vorw == "v") bw <- (matrix(as.numeric(vw), nrow=length(mvars), ncol = 3, byrow = TRUE ))
+      
+   
       title <- paste0("Simple slopes in ", path , " path for indirect effect ")
       
       plotDat2 <- data.frame(yv=numeric(), xv=numeric(), mov=numeric(),mev=factor())
@@ -423,8 +449,12 @@ modmedClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       for (i in seq_along(mvars)) {
         
-        pred1 <- b[i]*vw*modquant  + (as.numeric(modquant) %o% as.numeric(mm[i,]))*xquant[1]
-        pred2 <- b[i]*vw*modquant  + (as.numeric(modquant) %o% as.numeric(mm[i,]))*xquant[2]
+        d1 <-  matrix(as.numeric(ind[i,]), nrow = 2, ncol=3, byrow = TRUE)  
+        d2 <-  (modquant %o% as.numeric(mm[i,]))
+        yIom2 <- d1+ d2
+        
+        pred1 <-  as.numeric(modquant) %o%  as.numeric(bw[i,])  + yIom2*xquant[1]
+        pred2 <-  as.numeric(modquant) %o%  as.numeric(bw[i,])  + yIom2*xquant[2]
         pred <- rbind(pred1, pred2)
         plotDat1 <- data.frame(cbind(pred, xv = xv))
         plotDat1$mov <- as.factor(round(mov,1))                      

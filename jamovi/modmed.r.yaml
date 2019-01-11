@@ -177,7 +177,8 @@ items:
       width:  600
       height: 450
       renderFun: .plotIom
-
+      
+ 
     - name: plotIMMy
       title: Index of moderated mediation m-y path
       type: Image
@@ -186,6 +187,7 @@ items:
       height: 450
       renderFun: .plotIom
       
+
     - name: plotSSx
       title: Simple slopes for moderator x-m path
       type: Image

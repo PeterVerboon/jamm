@@ -26,13 +26,13 @@ buildModMedSemModel <- function(xvar,
   ncy <- length(cyvars);
 
   ### first index predictor in x - m path (= 1 because only one predictor)
-  a1 <- NULL    # 1:length(xvar);
+  a1 <- NULL #1:length(xvar);
 
   ### second indices mediators for x - m paths
   a2 <- 1:nm;
 
   ### second index predictor in m - y path (= 1 because only one dependent)
-  b2 <- NULL    # 1:length(yvar);
+  b2 <- NULL #1:length(yvar);
 
   ### first indices mediators for m - y paths
   b1 <- a2;
@@ -98,6 +98,8 @@ buildModMedSemModel <- function(xvar,
   ind <- paste0("ind", a2 );
   modmedx <- paste0("modmedx", a2 );
   modmedm <- paste0("modmedm", a2 );
+  bw <- paste0("bw", a2 );
+  gw <- paste0("gw", a2 );
 
   ### initialize path from mod on x - m path
   modela2 <- " ";
@@ -119,6 +121,8 @@ buildModMedSemModel <- function(xvar,
 
   ### initialize indirect effects with mod x on  m path
   modeli1 <- " ";
+  modeli3 <- " ";
+  modeli5 <- " ";
 
   ### initialize indirect effects with mod m on y path
   modeli2 <- " ";
@@ -165,12 +169,14 @@ buildModMedSemModel <- function(xvar,
 
   if(!is.null(xmmod)) {
     modeli1 <- paste0(modmedx , " := " , w2, " * ", b, collapse = " \n ");
+    modeli3 <- paste0(bw , " := " , w1, " * ", b, collapse = " \n ");
+    modeli5 <- paste0(gw , " := " , w1, " * ", w2, collapse = " \n ");
   }
   if(!is.null(mymod)) {
     modeli2 <- paste0(modmedm , " := " , v2, " * ", a, collapse = " \n ");
   }
 
-  modelt <- paste0("total"," := " , (paste0(ind,  collapse = " + ")));
+  modelt <- paste0("tot"," := " , (paste0(ind,  collapse = " + ")));
 
   model <- paste0(modela1," \n ",modela2," \n ",
                   modelb1," \n ", modelb2," \n ",
@@ -179,7 +185,7 @@ buildModMedSemModel <- function(xvar,
                   modelv, " \n ", modelv2, " \n ",
                   modelf, " \n ",
                   model_cov1," \n ", model_cov2, " \n ",
-                  modeli, " \n ", modeli1, " \n ", modeli2, " \n ",
+                  modeli, " \n ", modeli1, " \n ", modeli2, " \n ",modeli3, " \n ", modeli5, " \n ",
                   modelt);
 
   return(model)
